@@ -39,6 +39,21 @@ volumes:
 Please change the `endpoint`, `access-key`, `secret-key` and `bucket` for your local MinIO setup.
 </blockquote>
 
+## Docker (Using Insecure / Selfsigned certs)
+
+```yml
+volumes:
+  my-test-store:
+    driver: minio/minfs
+    driver_opts:
+      endpoint: https://myminiourl:9010
+      access-key: example-access-key
+      secret-key: example-secret-key
+      skipverify: "true"
+      opts: insecure,access-key=example-access-key,secret-key=example-secret-key
+      bucket: mybucketname
+```
+
 Once you have successfully created `docker-compose.yml` configuration in your current working directory.
 
 ```sh

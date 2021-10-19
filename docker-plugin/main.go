@@ -17,9 +17,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"errors"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,6 +63,8 @@ type serverConfig struct {
 	secretKey string
 	// Additional opts like custom uid,gid etc.
 	opts string
+	// Whether to skip verification of SSL certs.
+	skipverify bool
 }
 
 // Represents an instance of `minfs` mount of remote MinIO bucket.
@@ -179,6 +183,11 @@ func (d *minfsDriver) Create(r *volume.CreateRequest) error {
 	config.bucket = r.Options["bucket"]
 	config.secretKey = r.Options["secret-key"]
 	config.accessKey = r.Options["access-key"]
+	var err error
+	config.skipverify, err = strconv.ParseBool(r.Options["skipverify"])
+	if err != nil {
+		config.skipverify = false
+	}
 	config.opts = r.Options["opts"]
 
 	// find out whether the scheme of the URL is HTTPS.
@@ -201,6 +210,11 @@ func (d *minfsDriver) Create(r *volume.CreateRequest) error {
 	if err != nil {
 		logrus.Errorf("Error creating new MinIO client. <Error> %s", err.Error())
 		return err
+	}
+
+	if config.skipverify {
+		logrus.Debug("Set a custom transport to skip tls verification because of skipverify flag.")
+		minioClient.SetCustomTransport(&http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}})
 	}
 
 	// Create a bucket.

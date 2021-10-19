@@ -1,5 +1,5 @@
 ARG ARCH
-FROM ${ARCH}/golang:1.13-stretch
+FROM ${ARCH}/golang:1.17-stretch
 
 WORKDIR /go/src/github.com/minio
 
@@ -7,8 +7,9 @@ RUN \
     mkdir -p {/run/docker/plugins,/usr/share/man/man8} && \
     apt-get update && apt-get upgrade -y && \
     apt-get install sudo fuse libfuse2 bash git -y && \
-    git clone https://github.com/minio/minfs && \
+    git clone https://github.com/wildsheepz/minfs.git && \
     cd minfs && \
+    git checkout kuanyong && \
     make install
 
 COPY minfs-docker-plugin /usr/sbin/minfs-docker-plugin

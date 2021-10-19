@@ -24,8 +24,8 @@ import (
 	"strings"
 
 	"github.com/minio/cli"
-	"github.com/minio/minio/pkg/console"
 	minfs "github.com/minio/minfs/fs"
+	"github.com/minio/minio/pkg/console"
 )
 
 var (
@@ -57,6 +57,13 @@ COMMANDS:
 FLAGS:
   {{range .Flags}}{{.}}
   {{end}}{{end}}
+CUSTOM Fuse mount options:
+  - access-key{{ "\t" }}string key (overrides the settings in /etc/minfs/config.json)
+  - secret-key{{ "\t" }}string key (overrides the settings in /etc/minfs/config.json)
+  - cabundle{{ "\t" }}string filepath
+EXAMPLE:
+  ./minfs -o access-key=***,uid=1234,secret-key=***,cabundle=/path/to/cabundle.crt,insecure https://example.com:9010/mybucket  /mnt/mountpoint
+
 VERSION:
   ` + Version +
 	`{{ "\n"}}` +
@@ -143,6 +150,12 @@ func Main(args []string) {
 				opts = append(opts, minfs.Insecure())
 			case "debug":
 				opts = append(opts, minfs.Debug())
+			case "cabundle":
+				opts = append(opts, minfs.CABundle(vals[1]))
+			case "access-key":
+				opts = append(opts, minfs.AccessKey(vals[1]))
+			case "secret-key":
+				opts = append(opts, minfs.SecretKey(vals[1]))
 			}
 
 			target := c.Args().Get(0)

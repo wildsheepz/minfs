@@ -42,6 +42,7 @@ type Config struct {
 	mountpoint  string
 	insecure    bool
 	debug       bool
+	ca_bundle   string
 
 	uid  uint32
 	gid  uint32
@@ -133,6 +134,18 @@ func Target(target string) func(*Config) {
 	}
 }
 
+func AccessKey(path string) func(*Config) {
+	return func(cfg *Config) {
+		cfg.accessKey = path
+	}
+}
+
+func SecretKey(path string) func(*Config) {
+	return func(cfg *Config) {
+		cfg.secretKey = path
+	}
+}
+
 // CacheDir - cache directory path option for Config
 func CacheDir(path string) func(*Config) {
 	return func(cfg *Config) {
@@ -165,6 +178,12 @@ func Insecure() func(*Config) {
 func Debug() func(*Config) {
 	return func(cfg *Config) {
 		cfg.debug = true
+	}
+}
+
+func CABundle(bundlefile string) func(*Config) {
+	return func(cfg *Config) {
+		cfg.ca_bundle = bundlefile
 	}
 }
 

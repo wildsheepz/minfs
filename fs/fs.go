@@ -20,6 +20,7 @@ package minfs
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"mime"
@@ -175,17 +176,35 @@ func (mfs *MinFS) Serve() (err error) {
 	mfs.log.Println("Initializing minio client...")
 
 	var (
-		host   = mfs.config.target.Host
-		access = mfs.config.accessKey
-		secret = mfs.config.secretKey
-		token  = mfs.config.secretToken
-		secure = mfs.config.target.Scheme == "https"
+		host     = mfs.config.target.Host
+		access   = mfs.config.accessKey
+		secret   = mfs.config.secretKey
+		token    = mfs.config.secretToken
+		secure   = mfs.config.target.Scheme == "https"
+		cabundle = mfs.config.ca_bundle
 	)
 
 	creds := credentials.NewStaticV4(access, secret, token)
 	mfs.api, err = minio.NewWithCredentials(host, creds, secure, "")
 	if err != nil {
 		return err
+	}
+	var tlsConfig *tls.Config
+	if cabundle != "" {
+		bundle, err := os.ReadFile(cabundle)
+		if err != nil {
+			return err
+		}
+		certPool := x509.NewCertPool()
+		certPool.AppendCertsFromPEM(bundle)
+		tlsConfig = &tls.Config{
+			InsecureSkipVerify: mfs.config.insecure,
+			RootCAs:            certPool,
+		}
+	} else {
+		tlsConfig = &tls.Config{
+			InsecureSkipVerify: mfs.config.insecure,
+		}
 	}
 
 	var transport http.RoundTripper = &http.Transport{
@@ -198,9 +217,7 @@ func (mfs *MinFS) Serve() (err error) {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig: &tls.Config{
-			InsecureSkipVerify: mfs.config.insecure,
-		},
+		TLSClientConfig:       tlsConfig,
 		// Set this value so that the underlying transport round-tripper
 		// doesn't try to auto decode the body of objects with
 		// content-encoding set to `gzip`.
