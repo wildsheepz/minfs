@@ -1,5 +1,5 @@
 ARG ARCH
-FROM ${ARCH}/golang:1.13-stretch
+FROM ${ARCH}/golang:1.17-stretch
 
 WORKDIR /go/src/github.com/minio
 

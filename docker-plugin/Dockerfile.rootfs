@@ -1,5 +1,5 @@
 ARG ARCH
-FROM ${ARCH}/golang:1.13-stretch
+FROM ${ARCH}/golang:1.17-stretch
 
 COPY . minfs-docker-plugin
 WORKDIR minfs-docker-plugin

@@ -1,4 +1,4 @@
-PLUGIN_NAME=minio/minfs
+PLUGIN_NAME=kuanyong/minfs
 PLUGIN_TAG=latest
 PLUGIN_ARCH=amd64 # known namespaces: https://github.com/docker-library/official-images#architectures-other-than-amd64
 
@@ -31,6 +31,8 @@ docker:
 	@cp -a ../buildscripts minfs
 	@cp -a ../Makefile minfs
 	@cp -a ../.git minfs
+	@cp -a ../go.mod minfs
+	@cp -a ../go.sum minfs
 	@echo "### docker build: rootfs image with minfs-docker-plugin"
 	@docker build --build-arg ARCH=${PLUGIN_ARCH} -q -t ${PLUGIN_NAME}:rootfs .
 
@@ -68,6 +70,6 @@ create-edge:
 	@echo "### create new plugin ${PLUGIN_NAME}:edge from ./plugin"
 	@docker plugin create ${PLUGIN_NAME}:edge ./plugin
 
-push:  clean docker rootfs create
+push:  clean docker rootfs create-release
 	@echo "### push plugin ${PLUGIN_NAME}:${PLUGIN_TAG}"
 	@docker plugin push ${PLUGIN_NAME}:${PLUGIN_TAG}
